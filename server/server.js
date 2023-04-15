@@ -28,11 +28,8 @@ const io = socket(server, { //this is a socket.io instance, and are using the so
 io.on("connection", socket => { //this is called an event listener
     console.log(`socket id: ${socket.id}`)
     console.log("Nice to meet you! (shakes hand)")
-    // socket.emit("event_to_specific_client", data => {
-    //     console.log("Welcome to our chat!", data)
-    // })
-    socket.on("event_from_client", data => {
+    socket.on("event_from_client", (data) => {
         console.log("Received a message from client with socket id" + socket.id)
-        io.emit("event_to_all_other_clients", { sender: socket.id, content: data, timestamp: new Date().getTime() })
+        io.emit("event_to_all_other_clients", { sender: data.userId, content: data.content, timestamp: new Date().getTime() })
     })
 })

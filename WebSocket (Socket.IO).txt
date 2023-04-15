@@ -40,7 +40,7 @@ const io = socket(server, {
 1)
 io.on("connection", socket => {
     // NOTE: Each client that connects get their own socket id!
-    // if this is logged in our node terminal, that means we a new client
+    // if this is logged in our node terminal, that means a new client
     //     has successfully completed the handshake!
     console.log('socket id: ' + socket.id);
     
