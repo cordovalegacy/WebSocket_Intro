@@ -1,0 +1,110 @@
+WebSocket (Socket.IO)
+
+1. Doesn't ping the server every time there is a message, instead it exists in a socket in the browser.
+
+2. Sends a message using the http methods, and then waits inside the socket for a response when there is one.
+
+
+
+DOWNLOAD INSTRUCTIONS FOR SERVER:
+
+Go to server: (can also be done in client, see below)
+npm install socket.io
+
+server.js:
+
+const express = require('express');
+const app = express();
+const cors = require('cors');
+const socket = require('socket.io');
+const port = 8000;
+app.use(cors());
+ 
+const server = app.listen(port, () => {
+    console.log(`Listening on port: ${port}`)
+});
+ 
+// to initialize the socket, we need to invoke a new instance
+//     of socket.io and pass it our express server instance
+// We must also include a configuration settings object to prevent CORS errors
+const io = socket(server, {
+    cors: {
+        origin: 'http://localhost:3000', //cors is used here instead
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['*'],
+        credentials: true,
+    }
+});
+
+
+1)
+io.on("connection", socket => {
+    // NOTE: Each client that connects get their own socket id!
+    // if this is logged in our node terminal, that means we a new client
+    //     has successfully completed the handshake!
+    console.log('socket id: ' + socket.id);
+    
+    // We add our additional event listeners right inside this function
+    // NOTE: "connection" is a BUILT IN events listener
+});
+
+2)
+io.on("connection", socket => {
+    console.log('socket id: ' + socket.id);
+    
+    socket.on("event_from_client", data => {
+        // send a message with "data" to ALL clients EXCEPT for the one that emitted the
+    	//     "event_from_client" event
+        socket.broadcast.emit("event_to_all_other_clients", data);
+    });
+});
+
+io.emit emits an event to all connected clients
+socket.broadcast.emit emits an event to all clients other than this particular one, referenced by the socket variable
+socket.emit emits an event directly to this specific client
+
+
+DOWNLOAD INSTRUCTIONS FOR CLIENT:
+
+1. Go to client
+npm install socket.io-client
+
+2. import io from 'socket.io-client'; (per component)
+
+3.
+import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+import './App.css';
+ 
+function App() {
+  // notice that we pass a callback function to initialize the socket
+  // we don't need to destructure the 'setSocket' function since we won't be updating the socket state
+  const [socket] = useState(() => io(':8000'));
+ 
+  useEffect(() => {
+    // we need to set up all of our event listeners
+    // in the useEffect callback function
+    console.log('Is this running?');
+    socket.on('Welcome', data => console.log(data));
+ 
+    // note that we're returning a callback function
+    // this ensures that the underlying socket will be closed if App is unmounted
+    // this would be more critical if we were creating the socket in a subcomponent
+    return () => socket.disconnect(true);
+  }, []);
+ 
+  return (
+    <div className="App">
+      <h1>Socket Test</h1>
+    </div>
+  );
+}
+ 
+export default App;
+
+
+COOL FACT:
+Note: If your app is creating two socket connections every time you load the client side, it's probably related to the fact that create-react-app now wraps the App component in a React.StrictMode component to help detect issues in development. Unfortunately, this causes the lazy initial state callback to be fired twice. To prevent this, simply remove the wrapping component in index.js. See the following issue on GitHub: https://github.com/facebook/react/issues/15074
+
+To get your IP address:
+Open command prompt and type: ipconfig
